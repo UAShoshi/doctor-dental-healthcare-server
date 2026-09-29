@@ -41,6 +41,8 @@ async function run() {
     const adminDoctorsCollection = client.db("dentalCare").collection('admin-doctors');
     const adminAppointmentsCollection = client.db("dentalCare").collection('admin-appointments');
     const adminOrdersCollection = client.db("dentalCare").collection('admin-orders');
+    const userAppointmentsCollection = client.db("dentalCare").collection('user-appointments');
+    const userOrdersCollection = client.db("dentalCare").collection('user-orders');
 
 
 
@@ -98,7 +100,7 @@ async function run() {
     })
 
 
-    // Admmin Dashboard User releted apis
+    // Admin Dashboard User releted apis
     app.get('/admin-users', async (req, res) => {
       const cursor = adminDashboardCollection.find();
       const result = await cursor.toArray();
@@ -149,7 +151,7 @@ async function run() {
 
 
 
-    // Admmin Doctor releted apis
+    // Admin Doctor releted apis
     app.get('/admin-doctors', async (req, res) => {
       const cursor = adminDoctorsCollection.find();
       const result = await cursor.toArray();
@@ -200,7 +202,7 @@ async function run() {
 
 
 
-    // Admmin Appointments releted apis
+    // Admin Appointments releted apis
     app.get('/admin-appointments', async (req, res) => {
       const cursor = adminAppointmentsCollection.find();
       const result = await cursor.toArray();
@@ -239,7 +241,7 @@ async function run() {
 
 
 
-    // Admmin Order releted apis
+    // Admin Order releted apis
     app.get('/admin-orders', async (req, res) => {
       const cursor = adminOrdersCollection.find();
       const result = await cursor.toArray();
@@ -284,6 +286,122 @@ async function run() {
         });
       }
     });
+
+
+
+    // User appointments releted apis
+    app.get('/user-appointments/:email', async (req, res) => {
+      const email = req.params.email;
+
+      const result = await userAppointmentsCollection
+        .find({ userEmail: email })
+        .toArray();
+
+      res.send(result);
+    });
+
+
+    app.post('/user-appointments', async (req, res) => {
+      const appointment = req.body;
+
+      const result = await userAppointmentsCollection.insertOne(
+        appointment
+      );
+
+      res.send(result);
+    });
+
+
+    app.patch('/user-appointments/:id', async (req, res) => {
+      const id = req.params.id;
+      const { status } = req.body;
+
+      const query = {
+        _id: new ObjectId(id),
+      };
+
+      const updateDoc = {
+        $set: {
+          status: status,
+        },
+      };
+
+      const result = await userAppointmentsCollection.updateOne(
+        query,
+        updateDoc
+      );
+
+      res.send(result);
+    });
+
+
+
+    // User orders releted apis
+    app.get("/user-orders/:email", async (req, res) => {
+      try {
+        const email = req.params.email;
+
+        const result = await userOrdersCollection
+          .find({ userEmail: email })
+          .toArray();
+
+        res.send(result);
+
+      } catch (error) {
+        console.error(error);
+
+        res.status(500).send({
+          message: "Failed to load orders"
+        });
+      }
+    });
+
+ 
+    app.post("/user-orders", async (req, res) => {
+      try {
+        const orderData = req.body;
+
+        const result = await userOrdersCollection.insertOne(orderData);
+
+        res.send(result);
+
+      } catch (error) {
+        console.error(error);
+
+        res.status(500).send({
+          message: "Failed to create order"
+        });
+      }
+    });
+
+
+
+    app.patch("/user-orders/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+
+        const updateData = req.body;
+
+        const result = await userOrdersCollection.updateOne(
+          {
+            _id: new ObjectId(id)
+          },
+          {
+            $set: updateData
+          }
+        );
+
+        res.send(result);
+
+      } catch (error) {
+        console.error(error);
+
+        res.status(500).send({
+          message: "Failed to update order"
+        });
+      }
+    });
+
 
 
 
